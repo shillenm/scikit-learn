@@ -108,6 +108,7 @@ scikits.learn: machine learning in python
 :License:
   Open source, commercially usable: **BSD license** (3 clause)
 
+======================
 User guide
 ======================
 

@@ -125,15 +125,15 @@ div.bodywrapper h1 {
 }
 
 
-div.bodywrapper h2 { 
-    text-align: center;
-    padding-bottom: 20px;
-    border-top: 20px solid #cde8ef;
-    background-color: #cde8ef;
-    margin-left: -40px;
-    margin-right: -20px;
-    font-size: 150%;
-}
+/* div.bodywrapper h2 {  */
+/*     text-align: center; */
+/*     padding-bottom: 20px; */
+/*     border-top: 20px solid #cde8ef; */
+/*     background-color: #cde8ef; */
+/*     margin-left: -40px; */
+/*     margin-right: -20px; */
+/*     font-size: 150%; */
+/* } */
 
 div.body {
     /* padding: 0 30px 30px 30px; */
@@ -249,7 +249,8 @@ a:hover {
     color: #355F7C;
     text-decoration: underline;
 }
- 
+
+div.body h2, 
 div.body h3,
 div.body h4,
 div.body h5,
