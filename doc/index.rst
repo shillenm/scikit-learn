@@ -16,21 +16,11 @@
         font-size: 85% ;
         list-style-type: circle;
         }
-
-    div.bodywrapper h1 {
-        text-align: center;
-        font-size: 300% ;
-        color: #000;
-        border: none;
-        background-color: #FFFFFF;
-        padding: 3px 0 0 0;
-        margin: 0 0 -16px 0;
-    }
   
   </style>
 
 ===========================================
-Scikits.learn: machine learning in Python
+scikits.learn: machine learning in python
 ===========================================
 
 .. |banner1| image:: auto_examples/cluster/images/plot_affinity_propagation.png
@@ -38,7 +28,7 @@ Scikits.learn: machine learning in Python
    :target: auto_examples/cluster/plot_affinity_propagation.html
 
 
-.. |banner2| image:: auto_examples/svm/images/plot_custom_kernel.png
+.. |banner2| image:: auto_examples/glm/images/plot_lasso_lars.png
    :height: 150
    :target: auto_examples/svm/plot_custom_kernel.html
 
