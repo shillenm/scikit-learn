@@ -14,31 +14,6 @@
  * Author: 2010 Fabian Pedregosa <fabian.pedregosa@inria.fr>
  */
 
-struct svm_model
-{
-    struct svm_parameter param;   // parameter
-    int nr_class;                 // number of classes, = 2 in
-                                  // regression/one class svm
-    int l;                        // total #SV
-    struct svm_node **SV;         // SVs (SV[l])
-    double **sv_coef;             // coefficients for SVs in decision
-                                  // functions (sv_coef[k-1][l])
-    double *rho;                  // constants in decision functions
-                                  // (rho[k*(k-1)/2])
-    double *probA;                // pairwise probability information
-    double *probB;
-
-    // for classification only
-
-    int *label;     // label of each class (label[k])
-    int *nSV;       // number of SVs for each class (nSV[k])
-                    // nSV[0] + nSV[1] + ... + nSV[k-1] = l
-    // XXX
-    int free_sv;    // 1 if svm_model is created by svm_load_model
-                    // 0 if svm_model is created by svm_train
-};
-
-
 
 /*
  * Convert matrix to sparse representation suitable for libsvm. x is
@@ -651,7 +626,7 @@ int free_problem(struct svm_problem *problem)
 int free_model(struct svm_model *model)
 {
     if (model == NULL) return -1;
-    svm_destroy_model(model);
+    svm_free_and_destroy_model(&model);
     return 0;
 }
 
