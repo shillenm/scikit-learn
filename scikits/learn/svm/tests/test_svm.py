@@ -42,48 +42,48 @@ def test_libsvm_iris():
         assert np.mean(clf.predict(iris.data) == iris.target) > 0.9
     
 
-def test_precomputed():
-    """
-    SVC with a precomputed kernel.
+# def test_precomputed():
+#     """
+#     SVC with a precomputed kernel.
 
-    We test it with a toy dataset and with iris.
-    """
-    clf = svm.SVC(kernel='precomputed')
-    # we use just a linear kernel
-    K = np.dot(X, np.array(X).T)
-    clf.fit(K, Y)
-    # KT is the Gram matrix
-    KT = np.dot(T, np.array(X).T)
-    pred = clf.predict(KT)
+#     We test it with a toy dataset and with iris.
+#     """
+#     clf = svm.SVC(kernel='precomputed')
+#     # we use just a linear kernel
+#     K = np.dot(X, np.array(X).T)
+#     clf.fit(K, Y)
+#     # KT is the Gram matrix
+#     KT = np.dot(T, np.array(X).T)
+#     pred = clf.predict(KT)
 
-    assert_array_equal(clf.dual_coef_, [[0.25, -.25]])
-    assert_array_equal(clf.intercept_, [0])
-    assert_array_almost_equal(clf.support_, [[2], [4]])
-    assert_array_equal(pred, true_result)
+#     assert_array_equal(clf.dual_coef_, [[0.25, -.25]])
+#     assert_array_equal(clf.intercept_, [0])
+#     assert_array_almost_equal(clf.support_, [[2], [4]])
+#     assert_array_equal(pred, true_result)
 
-    # same as before, but using a callable function instead of the kernel
-    # matrix. kernel is just a linear kernel
+#     # same as before, but using a callable function instead of the kernel
+#     # matrix. kernel is just a linear kernel
 
-    kfunc = lambda x, y: np.dot(x, y.T)
-    clf = svm.SVC(kernel=kfunc)
-    clf.fit(X, Y)
-    pred = clf.predict(T)
+#     kfunc = lambda x, y: np.dot(x, y.T)
+#     clf = svm.SVC(kernel=kfunc)
+#     clf.fit(X, Y)
+#     pred = clf.predict(T)
 
-    assert_array_equal(clf.dual_coef_, [[0.25, -.25]])
-    assert_array_equal(clf.intercept_, [0])
-    assert_array_almost_equal(clf.support_, [[2], [4]])
-    assert_array_equal(pred, true_result)
+#     assert_array_equal(clf.dual_coef_, [[0.25, -.25]])
+#     assert_array_equal(clf.intercept_, [0])
+#     assert_array_almost_equal(clf.support_, [[2], [4]])
+#     assert_array_equal(pred, true_result)
 
-    # test a precomputed kernel with the iris dataset
-    clf = svm.SVC(kernel='precomputed')
-    K = np.dot(iris.data, iris.data.T)
-    clf.fit(K, iris.target)
-    pred = clf.predict(K)
-    assert_almost_equal(np.mean(pred == iris.target), .99, decimal=2)
+#     # test a precomputed kernel with the iris dataset
+#     clf = svm.SVC(kernel='precomputed')
+#     K = np.dot(iris.data, iris.data.T)
+#     clf.fit(K, iris.target)
+#     pred = clf.predict(K)
+#     assert_almost_equal(np.mean(pred == iris.target), .99, decimal=2)
 
-    clf = svm.SVC(kernel=kfunc)
-    clf.fit(iris.data, iris.target)
-    assert_almost_equal(np.mean(pred == iris.target), .99, decimal=2)
+#     clf = svm.SVC(kernel=kfunc)
+#     clf.fit(iris.data, iris.target)
+#     assert_almost_equal(np.mean(pred == iris.target), .99, decimal=2)
 
 
 def test_SVR():
@@ -149,55 +149,55 @@ def test_tweak_params():
     assert_array_equal(clf.predict([[-.1, -.1]]), [2])
 
 
-def test_probability():
-    """
-    Predict probabilities using SVC
+# def test_probability():
+#     """
+#     Predict probabilities using SVC
 
-    This uses cross validation, so we use a slightly bigger testing set.
-    """
+#     This uses cross validation, so we use a slightly bigger testing set.
+#     """
 
-    clf = svm.SVC(probability=True)
-    clf.fit(iris.data, iris.target)
+#     clf = svm.SVC(probability=True)
+#     clf.fit(iris.data, iris.target)
 
-    # predict on a simple dataset
-    T = [[0, 0, 0, 0],
-         [2, 2, 2, 2]]
-    assert_array_almost_equal(clf.predict_proba(T),
-                [[ 0.993, 0.003, 0.002],
-                 [ 0.740, 0.223  , 0.035]],
-                 decimal=2)
+#     # predict on a simple dataset
+#     T = [[0, 0, 0, 0],
+#          [2, 2, 2, 2]]
+#     assert_array_almost_equal(clf.predict_proba(T),
+#                 [[ 0.993, 0.003, 0.002],
+#                  [ 0.740, 0.223  , 0.035]],
+#                  decimal=2)
 
-    # make sure probabilities sum to one
-    pprob = clf.predict_proba(X)
-    assert_array_almost_equal(pprob.sum(axis=1),
-                               np.ones(len(X)))
+#     # make sure probabilities sum to one
+#     pprob = clf.predict_proba(X)
+#     assert_array_almost_equal(pprob.sum(axis=1),
+#                                np.ones(len(X)))
 
 
-def test_margin():
-    """
-    Test predict_margin
+# def test_margin():
+#     """
+#     Test predict_margin
 
-    We create a set of points lying in two lines, so that margin is easily
-    calculated in a linear kernel.
+#     We create a set of points lying in two lines, so that margin is easily
+#     calculated in a linear kernel.
 
-    TODO: distance should be sqrt(2)/2, but libsvm returns 1.
-    """
-    X = [(i, i) for i in range(-4, 6)]
-    X += [(i, i+2) for i in range(-4, 6)]
-    Y = [0]*10 + [1]*10
-    T = [[1]]*10 + [[-1]]*10
-    clf = svm.SVC(kernel='linear').fit(X, Y)
-    assert_array_almost_equal(clf.predict_margin(X), T)
+#     TODO: distance should be sqrt(2)/2, but libsvm returns 1.
+#     """
+#     X = [(i, i) for i in range(-4, 6)]
+#     X += [(i, i+2) for i in range(-4, 6)]
+#     Y = [0]*10 + [1]*10
+#     T = [[1]]*10 + [[-1]]*10
+#     clf = svm.SVC(kernel='linear').fit(X, Y)
+#     assert_array_almost_equal(clf.predict_margin(X), T)
 
-    # the same using a callable kernel
-    kfunc = lambda x, y: np.dot(x, y.T)
-    clf = svm.SVC(kernel=kfunc).fit(X, Y)
-    assert_array_almost_equal(clf.predict_margin(X), T)
+#     # the same using a callable kernel
+#     kfunc = lambda x, y: np.dot(x, y.T)
+#     clf = svm.SVC(kernel=kfunc).fit(X, Y)
+#     assert_array_almost_equal(clf.predict_margin(X), T)
 
-    # failing test
-    # assert_array_almost_equal (clf.predict_margin(iris.data),
-    #                            np.dot(clf.coef_.T, iris.data) + \
-    #                            clf.intercept_)
+#     # failing test
+#     # assert_array_almost_equal (clf.predict_margin(iris.data),
+#     #                            np.dot(clf.coef_.T, iris.data) + \
+#     #                            clf.intercept_)
 
 
 def test_weight():
