@@ -149,28 +149,28 @@ def test_tweak_params():
     assert_array_equal(clf.predict([[-.1, -.1]]), [2])
 
 
-# def test_probability():
-#     """
-#     Predict probabilities using SVC
+def test_probability():
+    """
+    Predict probabilities using SVC
 
-#     This uses cross validation, so we use a slightly bigger testing set.
-#     """
+    This uses cross validation, so we use a slightly bigger testing set.
+    """
 
-#     clf = svm.SVC(probability=True)
-#     clf.fit(iris.data, iris.target)
+    clf = svm.SVC(probability=True)
+    clf.fit(iris.data, iris.target)
 
-#     # predict on a simple dataset
-#     T = [[0, 0, 0, 0],
-#          [2, 2, 2, 2]]
-#     assert_array_almost_equal(clf.predict_proba(T),
-#                 [[ 0.993, 0.003, 0.002],
-#                  [ 0.740, 0.223  , 0.035]],
-#                  decimal=2)
+    # predict on a simple dataset
+    T = [[0, 0, 0, 0],
+         [2, 2, 2, 2]]
+    assert_array_almost_equal(clf.predict_proba(T),
+                [[ 0.993, 0.003, 0.002],
+                 [ 0.740, 0.223  , 0.035]],
+                 decimal=2)
 
-#     # make sure probabilities sum to one
-#     pprob = clf.predict_proba(X)
-#     assert_array_almost_equal(pprob.sum(axis=1),
-#                                np.ones(len(X)))
+    # make sure probabilities sum to one
+    pprob = clf.predict_proba(X)
+    assert_array_almost_equal(pprob.sum(axis=1),
+                               np.ones(len(X)))
 
 
 # def test_margin():
@@ -265,3 +265,7 @@ def test_LinearSVC_iris():
     clf = svm.LinearSVC().fit(iris.data, iris.target)
     assert np.mean(clf.predict(iris.data) == iris.target) > 0.95
 
+
+if __name__ == '__main__':
+    import nose
+    nose.runmodule()

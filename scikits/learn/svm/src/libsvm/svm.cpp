@@ -257,7 +257,7 @@ private:
 	double kernel_precomputed(int i, int j) const
 	{
 #ifdef _DENSE_REP
-		return (x+i)->values[(int)((x+j)->values[0])];
+		return (x+i)->values[j];
 #else
 		return x[i][(int)(x[j][0].value)].value;
 #endif
@@ -419,7 +419,7 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 			return tanh(param.gamma*dot(x,y)+param.coef0);
 		case PRECOMPUTED:  //x: test (validation), y: SV
 #ifdef _DENSE_REP
-			return x->values[(int)(y->values[0])];
+			return x->values[x - y];
 #else
 			return x[(int)(y->value)].value;
 #endif
