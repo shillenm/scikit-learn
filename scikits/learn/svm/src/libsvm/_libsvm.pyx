@@ -61,7 +61,7 @@ cdef extern from "libsvm_helper.c":
                                   double, int, int, int, char *, char *)
     svm_problem * set_problem (char *, char *, np.npy_intp *, int)
     svm_model *set_model (svm_parameter *, int, char *, np.npy_intp *, np.npy_intp *,
-                         char *, char *, char *, char *, char *, char *)
+                         char *, char *, char *, char *, char *, char *, char *)
     void copy_sv_coef   (char *, svm_model *)
     void copy_intercept (char *, svm_model *, np.npy_intp *)
     void copy_SV        (char *, svm_model *, np.npy_intp *)
@@ -168,14 +168,12 @@ def libsvm_train (np.ndarray[np.float64_t, ndim=2, mode='c'] X,
     copy_support (support.data, model)
 
     # copy model.SV
-    # we erase any previous information in SV
     cdef np.ndarray[np.float64_t, ndim=2, mode='c'] support_vectors
-    
     if kernel_type == 4:
-        support_vectors = np.empty((SV_len, 1), dtype=np.float64)
+        support_vectors = np.empty((0, 0), dtype=np.float64)
     else:
         support_vectors = np.empty((SV_len, X.shape[1]), dtype=np.float64)
-    copy_SV(support_vectors.data, model, support_vectors.shape)
+        copy_SV(support_vectors.data, model, support_vectors.shape)
 
     # copy model.nSV
     # TODO: do only in classification
@@ -216,6 +214,7 @@ def libsvm_predict (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                             double nu, double cache_size, double p, int
                             shrinking, int probability,
                             np.ndarray[np.int32_t, ndim=1, mode='c'] nSV,
+                            np.ndarray[np.int32_t, ndim=1, mode='c'] support,                    
                             np.ndarray[np.int32_t, ndim=1, mode='c'] label,
                             np.ndarray[np.float64_t, ndim=1, mode='c'] probA,
                             np.ndarray[np.float64_t, ndim=1, mode='c'] probB):
@@ -252,8 +251,10 @@ def libsvm_predict (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                           weight.data)
 
     model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape,
-                      sv_coef.strides, sv_coef.data, intercept.data,
-                      nSV.data, label.data, probA.data, probB.data)
+                      sv_coef.strides, sv_coef.data, support.data,
+                      intercept.data, nSV.data, label.data,
+                      probA.data, probB.data)
+    
     #TODO: use check_model
     dec_values = np.empty(T.shape[0])
     if copy_predict(T.data, model, T.shape, dec_values.data) < 0:
@@ -279,6 +280,7 @@ def libsvm_predict_proba (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                             double nu, double cache_size, double p, int
                             shrinking, int probability,
                             np.ndarray[np.int32_t, ndim=1, mode='c'] nSV,
+                            np.ndarray[np.int32_t, ndim=1, mode='c'] support,                          
                             np.ndarray[np.int32_t, ndim=1, mode='c'] label,
                             np.ndarray[np.float64_t, ndim=1, mode='c'] probA,
                             np.ndarray[np.float64_t, ndim=1, mode='c'] probB):
@@ -315,8 +317,10 @@ def libsvm_predict_proba (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                           coef0, nu, cache_size, C, eps, p, shrinking,
                           probability, <int> weight.shape[0], weight_label.data,
                           weight.data)
-    model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape, sv_coef.strides,
-                      sv_coef.data, intercept.data, nSV.data, label.data,
+
+    model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape,
+                      sv_coef.strides, sv_coef.data, support.data,
+                      intercept.data, nSV.data, label.data,
                       probA.data, probB.data)
 
     cdef np.npy_intp nr = get_nr(model)    
@@ -341,6 +345,7 @@ def libsvm_decision_function (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                             double nu, double cache_size, double p, int
                             shrinking, int probability,
                             np.ndarray[np.int32_t, ndim=1, mode='c'] nSV,
+                            np.ndarray[np.int32_t, ndim=1, mode='c'] support,
                             np.ndarray[np.int32_t, ndim=1, mode='c'] label,
                             np.ndarray[np.float64_t, ndim=1, mode='c'] probA,
                             np.ndarray[np.float64_t, ndim=1, mode='c'] probB):
@@ -359,8 +364,10 @@ def libsvm_decision_function (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                           coef0, nu, cache_size, C, eps, p, shrinking,
                           probability, <int> weight.shape[0], weight_label.data,
                           weight.data)
-    model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape, sv_coef.strides,
-                      sv_coef.data, intercept.data, nSV.data, label.data,
+
+    model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape,
+                      sv_coef.strides, sv_coef.data, support.data,
+                      intercept.data, nSV.data, label.data,
                       probA.data, probB.data)
 
     if svm_type > 1:

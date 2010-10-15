@@ -141,17 +141,16 @@ class BaseLibSVM(BaseEstimator):
         C : array, shape = [nsample]
         """
         T = np.atleast_2d(np.asanyarray(T, dtype=np.float64, order='C'))
-
         kernel_type, T = self._get_kernel(T)
+
         return libsvm_predict (T, self.support_vectors_,
                       self.dual_coef_, self.intercept_,
-                      self._svm_types.index(self.impl),
-                      kernel_type, self.degree,
-                      self.gamma, self.coef0, self.eps, self.C,
-                      self.weight_label, self.weight,
-                      self.nu, self.cache_size, self.p,
-                      int(self.shrinking), int(self.probability),
-                      self.n_support_, self.label_, self.probA_,
+                      self._svm_types.index(self.impl), kernel_type,
+                      self.degree, self.gamma, self.coef0, self.eps,
+                      self.C, self.weight_label, self.weight, self.nu,
+                      self.cache_size, self.p, int(self.shrinking),
+                      int(self.probability), self.n_support_,
+                      self.support_, self.label_, self.probA_,
                       self.probB_)
 
     def predict_proba(self, T):
@@ -190,7 +189,7 @@ class BaseLibSVM(BaseEstimator):
                       self.weight_label, self.weight,
                       self.nu, self.cache_size,
                       self.p, int(self.shrinking), int(self.probability),
-                      self.n_support_, self.label_,
+                      self.n_support_, self.support_, self.label_,
                       self.probA_, self.probB_)
         return pprob[:, np.argsort(self.label_)]
 
@@ -220,7 +219,7 @@ class BaseLibSVM(BaseEstimator):
                       self.weight_label, self.weight,
                       self.nu, self.cache_size,
                       self.p, int(self.shrinking), int(self.probability),
-                      self.n_support_, self.label_,
+                      self.n_support_, self.support_, self.label_,
                       self.probA_, self.probB_)
 
     @property

@@ -419,7 +419,7 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 			return tanh(param.gamma*dot(x,y)+param.coef0);
 		case PRECOMPUTED:  //x: test (validation), y: SV
 #ifdef _DENSE_REP
-                    /* hack to avoid copying support vector indices */
+                        /* hack to avoid copying support vector indices */
 			return x->values[y->dim];
 #else
 			return x[(int)(y->value)].value;
@@ -2554,7 +2554,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
                  *  dim
                  */
                 for (i=0; i<model->l; ++i) {
-                        SV->dim = model->sv_ind[i];
+                        SV[i].dim = model->sv_ind[i];
                 }
         } else {
                 SV = model->SV;
@@ -2572,7 +2572,12 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		
 		for(i=0;i<model->l;i++)
 #ifdef _DENSE_REP
+                        {
 			sum += sv_coef[i] * Kernel::k_function(x,SV+i,model->param);
+                        if (model->param.kernel_type == PRECOMPUTED) 
+                                free(SV+i);
+
+                        }
 #else
 			sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
 #endif
@@ -2593,7 +2598,12 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		double *kvalue = Malloc(double,l);
 		for(i=0;i<l;i++)
 #ifdef _DENSE_REP
+                        {
 			kvalue[i] = Kernel::k_function(x,SV+i,model->param);
+                        if (model->param.kernel_type == PRECOMPUTED) 
+                                free(SV+i);
+                        }
+
 #else
 			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
 #endif

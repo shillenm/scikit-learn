@@ -137,7 +137,7 @@ struct svm_problem * set_problem(char *X, char *Y, npy_intp *dims, int kernel_ty
 struct svm_model *set_model(struct svm_parameter *param, int nr_class,
                             char *SV, npy_intp *SV_dims, 
                             npy_intp *sv_coef_strides,
-                            char *sv_coef, char *rho, char *nSV, char *label, 
+                            char *sv_coef, char *sv_ind, char *rho, char *nSV, char *label, 
                             char *probA, char *probB)
 {
     struct svm_model *model;
@@ -159,6 +159,7 @@ struct svm_model *set_model(struct svm_parameter *param, int nr_class,
     model->nr_class = nr_class;
     model->param = *param;
     model->l = (int) SV_dims[0];
+    model->sv_ind = (int *) sv_ind;
 
     /* 
      * regression and one-class does not use nSV, label.
@@ -170,10 +171,6 @@ struct svm_model *set_model(struct svm_parameter *param, int nr_class,
     }
 
     for (i=0; i < model->nr_class-1; i++) {
-        /*
-         * We cannot squash all this mallocs in a single call since
-         * svm_destroy_model will free each element of the array.
-         */
         model->sv_coef[i] = dsv_coef + i*(model->l);
     }
 
