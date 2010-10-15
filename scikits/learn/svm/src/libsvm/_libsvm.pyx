@@ -65,6 +65,7 @@ cdef extern from "libsvm_helper.c":
     void copy_sv_coef   (char *, svm_model *)
     void copy_intercept (char *, svm_model *, np.npy_intp *)
     void copy_SV        (char *, svm_model *, np.npy_intp *)
+    int copy_support (char *data, svm_model *model)
     int copy_predict (char *, svm_model *, np.npy_intp *, char *)
     int  copy_predict_proba (char *, svm_model *, np.npy_intp *, char *)
     int  copy_predict_values(char *, svm_model *, np.npy_intp *, char *, int)
@@ -88,7 +89,6 @@ def libsvm_train (np.ndarray[np.float64_t, ndim=2, mode='c'] X,
                   np.ndarray[np.float64_t, ndim=1, mode='c'] Y,
                   int svm_type, int kernel_type, int degree, double gamma,
                   double coef0, double eps, double C, 
-                  np.ndarray[np.float64_t, ndim=2, mode='c'] SV,
                   np.ndarray[np.float64_t, ndim=2, mode='c'] sv_coef,
                   np.ndarray[np.float64_t, ndim=1, mode='c'] intercept,
                   np.ndarray[np.int32_t,   ndim=1, mode='c'] weight_label,
@@ -163,13 +163,19 @@ def libsvm_train (np.ndarray[np.float64_t, ndim=2, mode='c'] X,
     intercept.resize (nr*(nr-1)/2, refcheck=False)
     copy_intercept (intercept.data, model, intercept.shape)
 
+    cdef np.ndarray[np.int32_t, ndim=1, mode='c'] support
+    support = np.empty (SV_len, dtype=np.int32)
+    copy_support (support.data, model)
+
     # copy model.SV
     # we erase any previous information in SV
+    cdef np.ndarray[np.float64_t, ndim=2, mode='c'] support_vectors
+    
     if kernel_type == 4:
-        SV.resize((SV_len, 1), refcheck=False)
+        support_vectors = np.empty((SV_len, 1), dtype=np.float64)
     else:
-        SV.resize((SV_len, X.shape[1]), refcheck=False)
-    copy_SV(SV.data, model, SV.shape)
+        support_vectors = np.empty((SV_len, X.shape[1]), dtype=np.float64)
+    copy_SV(support_vectors.data, model, support_vectors.shape)
 
     # copy model.nSV
     # TODO: do only in classification
@@ -195,7 +201,7 @@ def libsvm_train (np.ndarray[np.float64_t, ndim=2, mode='c'] X,
     free_problem(problem)
     free_param(param)
 
-    return label, probA, probB
+    return support, support_vectors, label, probA, probB
 
 
 def libsvm_predict (np.ndarray[np.float64_t, ndim=2, mode='c'] T,

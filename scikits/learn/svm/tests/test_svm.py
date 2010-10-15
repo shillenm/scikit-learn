@@ -28,7 +28,7 @@ def test_libsvm_parameters():
 
     clf = svm.SVC(kernel='linear').fit(X, Y)
     assert_array_equal(clf.dual_coef_, [[ 0.25, -.25]])
-    assert_array_equal(clf.support_, [[-1, -1], [1, 1]])
+    assert_array_equal(clf.support_vectors_, [[-1, -1], [1, 1]])
     assert_array_equal(clf.intercept_, [0.])
     assert_array_equal(clf.predict(X), Y)
 
@@ -58,7 +58,7 @@ def test_libsvm_iris():
 
 #     assert_array_equal(clf.dual_coef_, [[0.25, -.25]])
 #     assert_array_equal(clf.intercept_, [0])
-#     assert_array_almost_equal(clf.support_, [[2], [4]])
+#     assert_array_almost_equal(clf.support_vectors_, [[2], [4]])
 #     assert_array_equal(pred, true_result)
 
 #     # same as before, but using a callable function instead of the kernel
@@ -71,7 +71,7 @@ def test_libsvm_iris():
 
 #     assert_array_equal(clf.dual_coef_, [[0.25, -.25]])
 #     assert_array_equal(clf.intercept_, [0])
-#     assert_array_almost_equal(clf.support_, [[2], [4]])
+#     assert_array_almost_equal(clf.support_vectors_, [[2], [4]])
 #     assert_array_equal(pred, true_result)
 
 #     # test a precomputed kernel with the iris dataset
@@ -97,7 +97,8 @@ def test_SVR():
 
     assert_array_almost_equal(clf.dual_coef_, [[-0.1, 0.1]])
     assert_array_almost_equal(clf.coef_, [[0.2, 0.2]])
-    assert_array_almost_equal(clf.support_, [[-1, -1], [1, 1]])
+    assert_array_almost_equal(clf.support_vectors_, [[-1, -1], [1, 1]])
+    assert_array_equal(clf.support_, [1, 3])
     assert_array_almost_equal(clf.intercept_, [1.5])
     assert_array_almost_equal(pred, [1.1, 2.3, 2.5])
 
@@ -110,7 +111,7 @@ def test_SVR():
                               [[-0.014, -0.515, -0.013, 0.515, 0.013, 0.013]],
                               decimal=3)
     assert_raises(NotImplementedError, lambda: clf.coef_)
-    assert_array_almost_equal(clf.support_, X)
+    assert_array_almost_equal(clf.support_vectors_, X)
     assert_array_almost_equal(clf.intercept_, [ 1.49997261])
     assert_array_almost_equal(pred, [ 1.10001274, 1.86682485, 1.73300377])
 

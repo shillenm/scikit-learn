@@ -76,6 +76,9 @@ struct svm_model
 	struct svm_node **SV;		/* SVs (SV[l]) */
 #endif
 	double **sv_coef;	/* coefficients for SVs in decision functions (sv_coef[k-1][l]) */
+
+        int *sv_ind;            /* index of support vectors */
+
 	double *rho;		/* constants in decision functions (rho[k*(k-1)/2]) */
 	double *probA;		/* pariwise probability information */
 	double *probB;

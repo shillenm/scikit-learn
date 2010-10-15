@@ -419,7 +419,8 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 			return tanh(param.gamma*dot(x,y)+param.coef0);
 		case PRECOMPUTED:  //x: test (validation), y: SV
 #ifdef _DENSE_REP
-			return x->values[x - y];
+                    /* hack to avoid copying support vector indices */
+			return x->values[y->dim];
 #else
 			return x[(int)(y->value)].value;
 #endif
@@ -2160,12 +2161,14 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 #else
 		model->SV = Malloc(svm_node *,nSV);
 #endif
-		model->sv_coef[0] = Malloc(double,nSV);
+                model->sv_ind = Malloc(int, nSV);
+		model->sv_coef[0] = Malloc(double, nSV);
 		int j = 0;
 		for(i=0;i<prob->l;i++)
 			if(fabs(f.alpha[i]) > 0)
 			{
 				model->SV[j] = prob->x[i];
+                                model->sv_ind[j] = i;
 				model->sv_coef[0][j] = f.alpha[i];
 				++j;
 			}		
@@ -2308,18 +2311,24 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 			model->nSV[i] = nSV;
 			nz_count[i] = nSV;
 		}
-		
+
 		info("Total nSV = %d\n",total_sv);
 
 		model->l = total_sv;
+                model->sv_ind = Malloc(int, total_sv);
 #ifdef _DENSE_REP
 		model->SV = Malloc(svm_node,total_sv);
 #else
 		model->SV = Malloc(svm_node *,total_sv);
 #endif
 		p = 0;
-		for(i=0;i<l;i++)
-			if(nonzero[i]) model->SV[p++] = x[i];
+		for(i=0;i<l;i++) {
+			if(nonzero[i]) { 
+                                model->SV[p] = x[i];
+                                model->sv_ind[p] = i;
+                                ++p;
+                        }
+                }
 
 		int *nz_start = Malloc(int,nr_class);
 		nz_start[0] = 0;
@@ -2533,16 +2542,37 @@ double svm_get_svr_probability(const svm_model *model)
 
 double svm_predict_values(const svm_model *model, const svm_node *x, double* dec_values)
 {
+        int i;
+
+#ifdef _DENSE_REP
+        svm_node *SV;
+        if (model->param.kernel_type == PRECOMPUTED) {
+                SV = (svm_node *) malloc (model->l * sizeof(svm_node));
+                /*
+                 * hack to avoid changing the signature of
+                 *  Kernel::k_function, we copy the indices into field
+                 *  dim
+                 */
+                for (i=0; i<model->l; ++i) {
+                        SV->dim = model->sv_ind[i];
+                }
+        } else {
+                SV = model->SV;
+        }
+
+#endif
+
 	if(model->param.svm_type == ONE_CLASS ||
 	   model->param.svm_type == EPSILON_SVR ||
 	   model->param.svm_type == NU_SVR)
 	{
 		double *sv_coef = model->sv_coef[0];
 		double sum = 0;
+
 		
-		for(int i=0;i<model->l;i++)
+		for(i=0;i<model->l;i++)
 #ifdef _DENSE_REP
-			sum += sv_coef[i] * Kernel::k_function(x,model->SV+i,model->param);
+			sum += sv_coef[i] * Kernel::k_function(x,SV+i,model->param);
 #else
 			sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
 #endif
@@ -2563,7 +2593,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		double *kvalue = Malloc(double,l);
 		for(i=0;i<l;i++)
 #ifdef _DENSE_REP
-			kvalue[i] = Kernel::k_function(x,model->SV+i,model->param);
+			kvalue[i] = Kernel::k_function(x,SV+i,model->param);
 #else
 			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
 #endif
@@ -3070,6 +3100,7 @@ void svm_free_model_content(svm_model* model_ptr)
 		free(model_ptr->sv_coef[i]);
 	free(model_ptr->SV);
 	free(model_ptr->sv_coef);
+	free(model_ptr->sv_ind);
 	free(model_ptr->rho);
 	free(model_ptr->label);
 	free(model_ptr->probA);

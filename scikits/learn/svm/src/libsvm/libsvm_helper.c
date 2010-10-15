@@ -265,6 +265,11 @@ void copy_SV(char *data, struct svm_model *model, npy_intp *dims)
     }
 }
 
+int copy_support (char *data, struct svm_model *model)
+{
+        memcpy (data, model->sv_ind, (model->l) * sizeof(int));
+}
+
 /* 
  * copy svm_model.nSV, an array with the number of SV for each class 
  * will be NULL in the case of SVR, OneClass
