@@ -35,7 +35,6 @@ struct svm_node *dense_to_libsvm (double *x, npy_intp *dims)
     struct svm_node *sparse;
     npy_intp i, j, count;                /* number of nonzero elements in row i */
     npy_intp len_row = dims[1];
-
     double *tx = x;
 
     sparse = (struct svm_node *) malloc (dims[0] * sizeof(struct svm_node));
@@ -47,26 +46,6 @@ struct svm_node *dense_to_libsvm (double *x, npy_intp *dims)
         sparse[i].dim = (int) len_row;
         tx += len_row;
     }
-
-    return sparse;
-}
-
-/* transform a dense kernel representation into one that libsvm can understand 
- *
- * TODO: this could be optimized, since row length is always the same.
-*/
-struct svm_node *dense_to_precomputed (double *x, npy_intp *dims)
-{
-    struct svm_node *sparse;
-    npy_intp i, j, count;               /* number of nonzero elements in row i */
-    struct svm_node *temp;          /* stack for nonzero elements */
-    struct svm_node *T;             /* pointer to the top of the stack */
-
-    sparse = (struct svm_node *) malloc (dims[0] * sizeof(struct svm_node *));
-
-
-    /* TODO */
-    /* Currently broken */
 
     return sparse;
 }
@@ -136,8 +115,9 @@ struct svm_problem * set_problem(char *X, char *Y, npy_intp *dims, int kernel_ty
  */
 struct svm_model *set_model(struct svm_parameter *param, int nr_class,
                             char *SV, npy_intp *SV_dims, 
+                            char *support, npy_intp *support_dims,
                             npy_intp *sv_coef_strides,
-                            char *sv_coef, char *sv_ind, char *rho, char *nSV, char *label, 
+                            char *sv_coef, char *rho, char *nSV, char *label, 
                             char *probA, char *probB)
 {
     struct svm_model *model;
@@ -152,14 +132,11 @@ struct svm_model *set_model(struct svm_parameter *param, int nr_class,
     model->sv_coef = (double **)  malloc((nr_class-1)*sizeof(double *));
     model->rho =     (double *)   malloc( m * sizeof(double));
 
-    /* in the case of precomputed kernels we do not use
-       dense_to_precomputed because we don't want the leading 0. As
-       indices start at 1 (not at 0) this will work */
     model->SV = dense_to_libsvm((double *) SV, SV_dims);
     model->nr_class = nr_class;
     model->param = *param;
-    model->l = (int) SV_dims[0];
-    model->sv_ind = (int *) sv_ind;
+    model->l = (int) support_dims[0];
+    model->sv_ind = (int *) support;
 
     /* 
      * regression and one-class does not use nSV, label.
@@ -258,7 +235,6 @@ void copy_SV(char *data, struct svm_model *model, npy_intp *dims)
     for (i=0; i<n; ++i) {
         memcpy (tdata, model->SV[i].values, dim * sizeof(double));
         tdata += dim;
-        /* put here code for computing indices of SVs */
     }
 }
 

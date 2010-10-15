@@ -60,8 +60,11 @@ cdef extern from "libsvm_helper.c":
                                   double , double , double , double,
                                   double, int, int, int, char *, char *)
     svm_problem * set_problem (char *, char *, np.npy_intp *, int)
-    svm_model *set_model (svm_parameter *, int, char *, np.npy_intp *, np.npy_intp *,
-                         char *, char *, char *, char *, char *, char *, char *)
+
+    svm_model *set_model (svm_parameter *, int, char *, np.npy_intp *,
+                         char *, np.npy_intp *, np.npy_intp *, char *,
+                         char *, char *, char *, char *, char *)
+
     void copy_sv_coef   (char *, svm_model *)
     void copy_intercept (char *, svm_model *, np.npy_intp *)
     void copy_SV        (char *, svm_model *, np.npy_intp *)
@@ -251,9 +254,9 @@ def libsvm_predict (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                           weight.data)
 
     model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape,
-                      sv_coef.strides, sv_coef.data, support.data,
-                      intercept.data, nSV.data, label.data,
-                      probA.data, probB.data)
+                      support.data, support.shape, sv_coef.strides,
+                      sv_coef.data, intercept.data, nSV.data,
+                      label.data, probA.data, probB.data)
     
     #TODO: use check_model
     dec_values = np.empty(T.shape[0])
@@ -319,9 +322,9 @@ def libsvm_predict_proba (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                           weight.data)
 
     model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape,
-                      sv_coef.strides, sv_coef.data, support.data,
-                      intercept.data, nSV.data, label.data,
-                      probA.data, probB.data)
+                      support.data, support.shape, sv_coef.strides,
+                      sv_coef.data, intercept.data, nSV.data,
+                      label.data, probA.data, probB.data)
 
     cdef np.npy_intp nr = get_nr(model)    
     dec_values = np.empty((T.shape[0], nr), dtype=np.float64)
@@ -366,9 +369,9 @@ def libsvm_decision_function (np.ndarray[np.float64_t, ndim=2, mode='c'] T,
                           weight.data)
 
     model = set_model(param, <int> nSV.shape[0], SV.data, SV.shape,
-                      sv_coef.strides, sv_coef.data, support.data,
-                      intercept.data, nSV.data, label.data,
-                      probA.data, probB.data)
+                      support.data, support.shape, sv_coef.strides,
+                      sv_coef.data, intercept.data, nSV.data,
+                      label.data, probA.data, probB.data)
 
     if svm_type > 1:
         nr = 1

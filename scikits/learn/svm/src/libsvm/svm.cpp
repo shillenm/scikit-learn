@@ -2553,6 +2553,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
                  *  Kernel::k_function, we copy the indices into field
                  *  dim
                  */
+
                 for (i=0; i<model->l; ++i) {
                         SV[i].dim = model->sv_ind[i];
                 }
@@ -2572,12 +2573,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		
 		for(i=0;i<model->l;i++)
 #ifdef _DENSE_REP
-                        {
 			sum += sv_coef[i] * Kernel::k_function(x,SV+i,model->param);
-                        if (model->param.kernel_type == PRECOMPUTED) 
-                                free(SV+i);
-
-                        }
 #else
 			sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
 #endif
@@ -2598,12 +2594,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		double *kvalue = Malloc(double,l);
 		for(i=0;i<l;i++)
 #ifdef _DENSE_REP
-                        {
 			kvalue[i] = Kernel::k_function(x,SV+i,model->param);
-                        if (model->param.kernel_type == PRECOMPUTED) 
-                                free(SV+i);
-                        }
-
 #else
 			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
 #endif
@@ -2648,6 +2639,13 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		for(i=1;i<nr_class;i++)
 			if(vote[i] > vote[vote_max_idx])
 				vote_max_idx = i;
+
+#ifdef _DENSE_REP
+        if (model->param.kernel_type == PRECOMPUTED) {
+                free(SV);
+        }
+#endif
+
 
 		free(kvalue);
 		free(start);
@@ -2798,7 +2796,7 @@ int svm_save_model(const char *model_file_name, const svm_model *model)
 #ifdef _DENSE_REP
 		const svm_node *p = (SV + i);
 
-		if(param.kernel_type == PRECOMPUTED)
+		if(param.kernel_type == PRECOMPUTED) /* this is wrong as we changed indices */
 			fprintf(fp,"0:%d ",(int)(p->values[0]));
 		else
 			for (int j = 0; j < p->dim; j++)
