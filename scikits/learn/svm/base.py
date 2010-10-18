@@ -86,7 +86,6 @@ class BaseLibSVM(BaseEstimator):
         # only used in classification
         self.n_support_ = np.empty(0, dtype=np.int32, order='C')
 
-
         if callable(self.kernel):
             # you must store a reference to X to compute the kernel in predict
             # there's a way around this, but it involves patching libsvm

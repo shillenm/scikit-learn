@@ -257,7 +257,7 @@ private:
 	double kernel_precomputed(int i, int j) const
 	{
 #ifdef _DENSE_REP
-		return (x+i)->values[j];
+		return (x+i)->values[x[j].ind];
 #else
 		return x[i][(int)(x[j][0].value)].value;
 #endif
@@ -418,12 +418,13 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 		case SIGMOID:
 			return tanh(param.gamma*dot(x,y)+param.coef0);
 		case PRECOMPUTED:  //x: test (validation), y: SV
+                    {
 #ifdef _DENSE_REP
-                        /* hack to avoid copying support vector indices */
-			return x->values[y->dim];
+			return x->values[y->ind];
 #else
 			return x[(int)(y->value)].value;
 #endif
+                    }
 		default:
 			return 0;  // Unreachable 
 	}
@@ -2543,26 +2544,6 @@ double svm_get_svr_probability(const svm_model *model)
 double svm_predict_values(const svm_model *model, const svm_node *x, double* dec_values)
 {
         int i;
-
-#ifdef _DENSE_REP
-        svm_node *SV;
-        if (model->param.kernel_type == PRECOMPUTED) {
-                SV = (svm_node *) malloc (model->l * sizeof(svm_node));
-                /*
-                 * hack to avoid changing the signature of
-                 *  Kernel::k_function, we copy the indices into field
-                 *  dim
-                 */
-
-                for (i=0; i<model->l; ++i) {
-                        SV[i].dim = model->sv_ind[i];
-                }
-        } else {
-                SV = model->SV;
-        }
-
-#endif
-
 	if(model->param.svm_type == ONE_CLASS ||
 	   model->param.svm_type == EPSILON_SVR ||
 	   model->param.svm_type == NU_SVR)
@@ -2573,7 +2554,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		
 		for(i=0;i<model->l;i++)
 #ifdef _DENSE_REP
-			sum += sv_coef[i] * Kernel::k_function(x,SV+i,model->param);
+			sum += sv_coef[i] * Kernel::k_function(x,model->SV+i,model->param);
 #else
 			sum += sv_coef[i] * Kernel::k_function(x,model->SV[i],model->param);
 #endif
@@ -2594,7 +2575,7 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		double *kvalue = Malloc(double,l);
 		for(i=0;i<l;i++)
 #ifdef _DENSE_REP
-			kvalue[i] = Kernel::k_function(x,SV+i,model->param);
+			kvalue[i] = Kernel::k_function(x,model->SV+i,model->param);
 #else
 			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);
 #endif
@@ -2639,13 +2620,6 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		for(i=1;i<nr_class;i++)
 			if(vote[i] > vote[vote_max_idx])
 				vote_max_idx = i;
-
-#ifdef _DENSE_REP
-        if (model->param.kernel_type == PRECOMPUTED) {
-                free(SV);
-        }
-#endif
-
 
 		free(kvalue);
 		free(start);

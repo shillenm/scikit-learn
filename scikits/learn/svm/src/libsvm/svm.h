@@ -13,6 +13,8 @@ extern int libsvm_version;
 struct svm_node
 {
 	int dim;
+        int ind; /* index. A bit redundanat, but needed if using a
+                    precomputed kernel */
 	double *values;
 };
 

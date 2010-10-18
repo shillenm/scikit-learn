@@ -175,31 +175,31 @@ def test_probability():
                                np.ones(len(X)))
 
 
-# def test_margin():
-#     """
-#     Test predict_margin
+def test_margin():
+    """
+    Test predict_margin
 
-#     We create a set of points lying in two lines, so that margin is easily
-#     calculated in a linear kernel.
+    We create a set of points lying in two lines, so that margin is easily
+    calculated in a linear kernel.
 
-#     TODO: distance should be sqrt(2)/2, but libsvm returns 1.
-#     """
-#     X = [(i, i) for i in range(-4, 6)]
-#     X += [(i, i+2) for i in range(-4, 6)]
-#     Y = [0]*10 + [1]*10
-#     T = [[1]]*10 + [[-1]]*10
-#     clf = svm.SVC(kernel='linear').fit(X, Y)
-#     assert_array_almost_equal(clf.predict_margin(X), T)
+    TODO: distance should be sqrt(2)/2, but libsvm returns 1.
+    """
+    X = [(i, i) for i in range(-4, 6)]
+    X += [(i, i+2) for i in range(-4, 6)]
+    Y = [0]*10 + [1]*10
+    T = [[1]]*10 + [[-1]]*10
+    clf = svm.SVC(kernel='linear').fit(X, Y)
+    assert_array_almost_equal(clf.predict_margin(X), T)
 
-#     # the same using a callable kernel
-#     kfunc = lambda x, y: np.dot(x, y.T)
-#     clf = svm.SVC(kernel=kfunc).fit(X, Y)
-#     assert_array_almost_equal(clf.predict_margin(X), T)
+    # the same using a callable kernel
+    kfunc = lambda x, y: np.dot(x, y.T)
+    clf = svm.SVC(kernel=kfunc).fit(X, Y)
+    assert_array_almost_equal(clf.predict_margin(X), T)
 
-#     # failing test
-#     # assert_array_almost_equal (clf.predict_margin(iris.data),
-#     #                            np.dot(clf.coef_.T, iris.data) + \
-#     #                            clf.intercept_)
+    # failing test
+    # assert_array_almost_equal (clf.predict_margin(iris.data),
+    #                            np.dot(clf.coef_.T, iris.data) + \
+    #                            clf.intercept_)
 
 
 def test_weight():
