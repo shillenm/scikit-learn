@@ -18,7 +18,9 @@ def configuration(parent_package='', top_path=None):
     config.add_library('libsvm-skl',
                        sources=[join('src', 'libsvm', 'libsvm_template.cpp')],
                        depends=[join('src', 'libsvm', 'svm.cpp'),
-                                join('src', 'libsvm', 'svm.h')]
+                                join('src', 'libsvm', 'svm.h')],
+                       extra_compile_args=['-O0 -fno-inline']
+
                        )
     libsvm_sources = [join('src', 'libsvm', '_libsvm.c')]
     libsvm_depends = [join('src', 'libsvm', 'libsvm_helper.c')]
@@ -27,7 +29,8 @@ def configuration(parent_package='', top_path=None):
                          sources=libsvm_sources,
                          include_dirs=[numpy.get_include()],
                          libraries=['libsvm-skl'],
-                         depends=libsvm_depends
+                         depends=libsvm_depends,
+                         extra_compile_args=['-O0 -fno-inline']
                          )
 
     ### liblinear module
