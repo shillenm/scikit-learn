@@ -71,16 +71,16 @@ You can check the latest sources with the command::
 
     git clone git://github.com/scikit-learn/scikit-learn.git
 
-or if you have write privileges::
 
-    git clone git@github.com:scikit-learn/scikit-learn.git
+For more info, see the github web page
+https://github.com/scikit-learn/scikit-learn
 
 Bugs
 ----
 
 Please submit bugs you might encounter, as well as patches and feature
 requests to the tracker located at the address
-https://sourceforge.net/apps/trac/scikit-learn/report
+https://github.com/scikit-learn/scikit-learn/issues
 
 
 Testing
