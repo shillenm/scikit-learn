@@ -2,6 +2,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from scikits.learn import linear_model, datasets
+from scipy import linalg
 
 diabetes = datasets.load_diabetes()
 X, y = diabetes.data, diabetes.target
@@ -54,25 +55,25 @@ def test_simple_precomputed():
 
 def test_lars_lstsq():
     """
-    Test that LARS gives least square solution at the end
-    of the path
+    Test that LARS gives least square solution at the end of the path
+    for method 'lar' and 'lasso', and on every iteration for 'ols'
     """
-    # test that it arrives to a least squares solution
-    alphas_, active, coef_path_ = linear_model.lars_path(diabetes.data, diabetes.target,
-                                                                method="lar")
-    coef_lstsq = np.linalg.lstsq(X, y)[0]
-    assert_array_almost_equal(coef_path_.T[-1], coef_lstsq)
+    coef_lstsq, _, _, _ = linalg.lstsq(diabetes.data, diabetes.target)
+    for method in ('lar', 'lasso'):
+        alphas_, _, coef_path_ = linear_model.lars_path(
+            diabetes.data, diabetes.target, method=method)
+        assert_array_almost_equal(coef_path_.T[-1], coef_lstsq)
 
+    # for ols
+    for i in range(2, diabetes.data.shape[1]):
+        alphas_, active_, coef_path_ = linear_model.lars_path(
+            diabetes.data, diabetes.target, method='ols', max_features=i)
 
-def test_lasso_gives_lstsq_solution():
-    """
-    Test that LARS Lasso gives least square solution at the end
-    of the path
-    """
+        coef_lstsq, _, _, _ = linalg.lstsq(
+            diabetes.data[:, active_], diabetes.target)
 
-    alphas_, active, coef_path_ = linear_model.lars_path(X, y, method="lasso")
-    coef_lstsq = np.linalg.lstsq(X, y)[0]
-    assert_array_almost_equal(coef_lstsq , coef_path_[:,-1])
+        assert_array_almost_equal(coef_path_[active_, -1], coef_lstsq)
+
 
 
 def test_singular_matrix():
