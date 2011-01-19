@@ -58,6 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 #include <stdarg.h>
 #include "svm.h"
+#include <omp.h>
 
 #ifndef _LIBSVM_CPP
 int libsvm_version = LIBSVM_VERSION;
@@ -625,6 +626,7 @@ void Solver::reconstruct_gradient()
 		for(i=active_size;i<l;i++)
 		{
 			const Qfloat *Q_i = Q->get_Q(i,active_size);
+
 			for(j=0;j<active_size;j++)
 				if(is_free(j))
 					G[i] += alpha[j] * Q_i[j];
@@ -1410,6 +1412,7 @@ public:
 		int start, j;
 		if((start = cache->get_data(i,&data,len)) < len)
 		{
+#pragma omp parallel for private(j)
 			for(j=start;j<len;j++)
 				data[j] = (Qfloat)(y[i]*y[j]*(this->*kernel_function)(i,j));
 		}
@@ -2145,6 +2148,7 @@ static void svm_binary_svc_probability(
 			subparam.weight[0]=Cp;
 			subparam.weight[1]=Cn;
 			struct PREFIX(model) *submodel = PREFIX(train)(&subprob,&subparam);
+#pragma omp parallel for private(j)
 			for(j=begin;j<end;j++)
 			{
 #ifdef _DENSE_REP

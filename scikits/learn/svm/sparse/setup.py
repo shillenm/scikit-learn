@@ -14,7 +14,7 @@ def configuration(parent_package='', top_path=None):
     libsvm_sparse_sources = [join('..', 'src', 'libsvm', '_libsvm_sparse.c')]
 
     config.add_extension('_libsvm_sparse',
-                         libraries=['libsvm-skl'],
+                         libraries=['libsvm-skl', 'gomp'],
                          sources=libsvm_sparse_sources,
                          include_dirs=[numpy.get_include(),
                                        join('..', 'src', 'libsvm')],

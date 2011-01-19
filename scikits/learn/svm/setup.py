@@ -25,6 +25,7 @@ def configuration(parent_package='', top_path=None):
                        sources=[join('src', 'libsvm', 'libsvm_template.cpp')],
                        depends=[join('src', 'libsvm', 'svm.cpp'),
                                 join('src', 'libsvm', 'svm.h')],
+                       extra_compiler_args=['-fopenmp']
                        )
 
     libsvm_sources = [join('src', 'libsvm', '_libsvm.c')]
@@ -33,10 +34,11 @@ def configuration(parent_package='', top_path=None):
                       join('src', 'libsvm', 'svm.cpp'),
                       join('src', 'libsvm', 'svm.h')]
 
+
     config.add_extension('_libsvm',
                          sources=libsvm_sources,
                          include_dirs=[numpy.get_include()],
-                         libraries=['libsvm-skl'],
+                         libraries=['libsvm-skl', 'gomp'],
                          depends=libsvm_depends,
                          )
 
