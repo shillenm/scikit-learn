@@ -1,7 +1,6 @@
 
-from ...base import ClassifierMixin, RegressorMixin
+from ...base import ClassifierMixin, RegressorMixin, SparseCoefSelectTransformerMixin
 from .base import SparseBaseLibSVM, SparseBaseLibLinear
-from ...linear_model.sparse.base import CoefSelectTransformerMixin
 
 
 class SVC(SparseBaseLibSVM, ClassifierMixin):
@@ -176,7 +175,7 @@ class OneClassSVM (SparseBaseLibSVM):
 
 
 class LinearSVC(SparseBaseLibLinear, ClassifierMixin,
-                CoefSelectTransformerMixin):
+                SparseCoefSelectTransformerMixin):
     """
     Linear Support Vector Classification, Sparse Version
 

@@ -280,6 +280,41 @@ class TransformerMixin(object):
             # fit method of arity 2 (supervised transformation)
             return self.fit(X, y, **fit_params).transform(X)
 
+
+class CoefSelectTransformerMixin(object):
+    """Mixin for linear models that can find sparse solutions.
+    """
+
+    def transform(self, X, threshold=1e-10):
+        if len(self.coef_.shape) == 1 or self.coef_.shape[1] == 1:
+            # 2-class case
+            coef = np.ravel(self.coef_)
+        else:
+            # multi-class case
+            coef = np.mean(self.coef_, axis=0)
+
+        return X[:, coef <= threshold]
+
+
+class SparseCoefSelectTransformerMixin(object):
+    """Mixin for linear models that can find sparse solutions.
+    """
+
+    def transform(self, X, threshold=1e-10):
+        import scipy.sparse as sp
+        X = sp.csc_matrix(X)
+        ind = np.arange(X.shape[0])
+
+        if len(self.coef_.shape) == 1 or self.coef_.shape[1] == 1:
+            # 2-class case
+            coef = np.ravel(self.coef_)
+        else:
+            # multi-class case
+            coef = np.mean(self.coef_, axis=0)
+
+        return X[:, ind[coef <= threshold]]
+
+
 ################################################################################
 # XXX: Temporary solution to figure out if an estimator is a classifier
 

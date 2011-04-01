@@ -489,17 +489,3 @@ class BaseSGDRegressor(BaseSGD, RegressorMixin):
         X = np.asanyarray(X)
         return np.dot(X, self.coef_) + self.intercept_
 
-
-class CoefSelectTransformerMixin(object):
-    """Mixin for linear models that can find sparse solutions.
-    """
-
-    def transform(self, X, threshold=1e-10):
-        if len(self.coef_.shape) == 1 or self.coef_.shape[1] == 1:
-            # 2-class case
-            coef = np.ravel(self.coef_)
-        else:
-            # multi-class case
-            coef = np.mean(self.coef_, axis=0)
-
-        return X[:, coef <= threshold]

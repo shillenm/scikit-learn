@@ -1,7 +1,6 @@
 import numpy as np
 
-from ..base import ClassifierMixin
-from ..linear_model.base import CoefSelectTransformerMixin
+from ..base import ClassifierMixin, CoefSelectTransformerMixin
 from ..svm.base import BaseLibLinear
 from ..svm import liblinear
 

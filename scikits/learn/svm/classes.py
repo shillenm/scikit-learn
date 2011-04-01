@@ -1,5 +1,4 @@
-from ..base import ClassifierMixin, RegressorMixin
-from ..linear_model.base import CoefSelectTransformerMixin
+from ..base import ClassifierMixin, RegressorMixin, CoefSelectTransformerMixin
 from .base import BaseLibLinear, BaseLibSVM
 
 
