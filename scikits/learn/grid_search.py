@@ -268,38 +268,29 @@ class GridSearchCV(BaseEstimator):
         n_fits = len(out)
         n_folds = n_fits // n_grid_points
 
-        scores = list()
+        scores, best_score = list(), -1
         for grid_start in range(0, n_fits, n_folds):
-            n_test_samples = 0
-            score = 0
-            for this_score, estimator, this_n_test_samples in \
-                                    out[grid_start:grid_start + n_folds]:
-                if self.iid:
-                    this_score *= this_n_test_samples
-                score += this_score
-                n_test_samples += this_n_test_samples
+            fold_out = out[grid_start:grid_start + n_folds]
+            this_score, this_samples = [(x, y) for (x, y, _) in fold_out]
             if self.iid:
-                score /= float(n_test_samples)
-            scores.append((score, estimator))
-
-        # Note: we do not use max(out) to make ties deterministic even if
-        # comparison on estimator instances is not deterministic
-        best_score = None
-        for score, estimator in scores:
-            if best_score is None:
-                best_score = score
-                best_estimator = estimator
+                score = np.dot(this_score, this_samples) \
+                        / np.sum(this_samples)
             else:
-                if score >= best_score:
-                    best_score = score
-                    best_estimator = estimator
+                score = np.sum(this_score)
 
+            if score >= best_score:
+                best_score = score
+                best_estimator = fold_out[0][1]
+            # store for future reference
+            scores.append(score)
+
+        if best_score < 0:
+            raise ValueError('Best classifier could not be found')
         self.best_score = best_score
 
         if self.refit:
             # fit the best estimator using the entire dataset
             best_estimator.fit(X, y, **self.fit_params)
-
         self.best_estimator = best_estimator
         if hasattr(best_estimator, 'predict'):
             self.predict = best_estimator.predict
@@ -310,7 +301,7 @@ class GridSearchCV(BaseEstimator):
         # XXX: the name is too specific, it shouldn't have
         # 'grid' in it. Also, we should be retrieving/storing variance
         self.grid_points_scores_ = dict((tuple(clf_params.items()), score)
-                    for clf_params, (score, _) in zip(grid, scores))
+                    for clf_params, score in zip(grid, scores))
 
         return self
 
