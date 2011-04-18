@@ -310,6 +310,27 @@ def test_auto_weight():
         assert metrics.f1_score(y, y_pred) <= metrics.f1_score(y, y_pred_balanced)
 
 
+def test_CV():
+    # compare kernels
+    kernel = ['rbf', 'poly', 'linear']
+    sample_weight = np.ones((3, iris.data.shape[0]))
+    sample_weight[0][:iris.data.shape[0] // 2] = 0.
+    sample_weight[2][:iris.data.shape[0] // 2] = 100.
+    for klass in (svm.SVCCV, svm.NuSVCCV, svm.SVRCV, svm.NuSVRCV):
+        clf = klass()
+        clf.fit(iris.data, iris.target, kernel=kernel)
+        assert clf.kernel == 'linear'
+
+        clf = klass()
+        degree = np.arange(1, 3)
+        clf.fit(iris.data, iris.target, degree=degree)
+        assert clf.degree == 1
+
+        clf = klass()
+        clf.fit(iris.data, iris.target, sample_weight=sample_weight)
+        assert clf.grid_scores_ == 0
+    # TODO: iterate on more esoteric parameters: class_weight
+
 def test_error():
     """
     Test that it gives proper exception on deficient input

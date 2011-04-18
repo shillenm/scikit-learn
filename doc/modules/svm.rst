@@ -260,6 +260,32 @@ Implemented classes are :class:`SVC`, :class:`NuSVC`,
 :class:`LinearSVC`.
 
 
+Model selection with Support Vector Machines
+============================================
+
+Several classes have a conterpart with the same name but ended with CV
+(for Cross-Validation) that ease the process of selecting an optimal
+classifier by cross-validation. These classes accept the same keyword
+as the non-crossvalidated conterparts but where these take a value or
+a 1d array, the CV conterpart might optionally take a list of values
+or a 2d array, respectively.
+
+The classes that implement this scheme are :ref:`svm.SVCCV`,
+:ref:`svm.NuSVCCV`, :ref:`svm.SVR`, :ref:`svm.NuSVR`. For example, if
+we would like to compute the best kernel on the iris dataset, we would
+just have to pass the list of kernels ('linear', 'rbf', 'poly') to one
+of these classifiers, and when the model is fitted it will 
+
+
+    >>> from scikits.learn import svm, datasets
+    >>> iris = datasets.load_iris()
+    >>> clf = svm.SVCCV(kernel=('linear', 'rbf', 'poly'))
+    >>> clf.fit(iris.data, iris.target)
+    >>> clf.kernel
+    'linear'
+
+
+
 Complexity
 ==========
 

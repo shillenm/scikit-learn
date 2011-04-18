@@ -1,6 +1,6 @@
 from ..base import ClassifierMixin, RegressorMixin
 from ..linear_model.base import CoefSelectTransformerMixin
-from .base import BaseLibLinear, BaseLibSVM
+from .base import BaseLibLinear, BaseLibSVM, BaseLibSVMCV
 
 
 class LinearSVC(BaseLibLinear, ClassifierMixin, CoefSelectTransformerMixin):
@@ -37,7 +37,7 @@ class LinearSVC(BaseLibLinear, ClassifierMixin, CoefSelectTransformerMixin):
     intercept_scaling : float, default: 1
         when self.fit_intercept is True, instance vector x becomes
         [x, self.intercept_scaling],
-        i.e. a "synthetic" feature with constant value equals to
+        i.e. a 'synthetic' feature with constant value equals to
         intercept_scaling is appended to the instance vector.
         The intercept becomes intercept_scaling * synthetic feature weight
         Note! the synthetic feature weight is subject to l1/l2 regularization
@@ -580,3 +580,81 @@ class OneClassSVM(BaseLibSVM):
             X, [], class_weight=class_weight, sample_weight=sample_weight,
             **params)
 
+
+
+
+class SVCCV(BaseLibSVMCV):
+    """
+    Support Vector Classification, cross-validated implementation.
+    
+    Parameters
+    ----------
+    The parameters are the same as those in the :ref:`SVC` class,
+    where in addition each keyword can contain multiple values and the
+    optimal will be selected by cross-validation after the model is fitted.
+    """
+    
+    def __init__(self, C=1.0, kernel='rbf', degree=3, gamma=0.0,
+                 coef0=0.0, shrinking=True, probability=False,
+                 tol=1e-3, cache_size=100.0):
+
+        BaseLibSVM.__init__(self, 'c_svc', kernel, degree, gamma, coef0,
+                         cache_size, tol, C, 0., 0.,
+                         shrinking, probability)
+
+class NuSVCCV(BaseLibSVMCV):
+    """
+    Nu-Support Vector Classification, cross-validated implementation.
+    
+    Parameters
+    ----------
+    The parameters are the same as those in the :ref:`SVC` class,
+    where in addition each keyword can contain multiple values and the
+    optimal will be selected by cross-validation after the model is fitted.
+    """
+
+    def __init__(self, nu=0.5, kernel='rbf', degree=3, gamma=0.0,
+                 coef0=0.0, shrinking=True, probability=False,
+                 tol=1e-3, cache_size=100.0):
+
+        BaseLibSVM.__init__(self, 'nu_svc', kernel, degree, gamma,
+                         coef0, cache_size, tol, 0., nu, 0.,
+                         shrinking, probability)
+
+class SVRCV(BaseLibSVMCV):
+    """
+    Support Vector Regression, cross-validated implementation.
+    
+    Parameters
+    ----------
+    The parameters are the same as those in the :ref:`SVC` class,
+    where in addition each keyword can contain multiple values and the
+    optimal will be selected by cross-validation after the model is fitted.
+    """
+    def __init__(self, kernel='rbf', degree=3, gamma=0.0, coef0=0.0,
+                 cache_size=100.0, tol=1e-3, C=1.0, nu=0.5, epsilon=0.1,
+                 shrinking=True, probability=False):
+
+        BaseLibSVM.__init__(self, 'epsilon_svr', kernel, degree,
+                         gamma, coef0, cache_size, tol, C, nu,
+                         epsilon, shrinking, probability)
+
+
+class NuSVRCV(BaseLibSVMCV):
+    """
+    Nu-Support Vector Regression, cross-validated implementation.
+    
+    Parameters
+    ----------
+    The parameters are the same as those in the :ref:`SVC` class,
+    where in addition each keyword can contain multiple values and the
+    optimal will be selected by cross-validation after the model is fitted.
+    """
+    
+    def __init__(self, nu=0.5, C=1.0, kernel='rbf', degree=3,
+                 gamma=0.0, coef0=0.0, shrinking=True, epsilon=0.1,
+                 probability=False, cache_size=100.0, tol=1e-3):
+
+        BaseLibSVM.__init__(self, 'epsilon_svr', kernel, degree,
+                         gamma, coef0, cache_size, tol, C, nu,
+                         epsilon, shrinking, probability)

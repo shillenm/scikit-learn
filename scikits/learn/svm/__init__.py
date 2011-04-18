@@ -10,5 +10,6 @@ Support Vector Machine algorithms.
 #         of their respective owners.
 # License: New BSD, (C) INRIA 2010
 
-from .classes import SVC, NuSVC, SVR, NuSVR, OneClassSVM, LinearSVC
+from .classes import SVC, NuSVC, SVR, NuSVR, OneClassSVM, LinearSVC, SVCCV, \
+     NuSVCCV, SVRCV, NuSVRCV
 from . import sparse, libsvm, liblinear

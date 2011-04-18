@@ -457,4 +457,109 @@ class BaseLibLinear(BaseEstimator):
             return -1.0
 
 
+
+
+class BaseLibSVMCV(BaseLibSVM):
+    """Base class for cross-validated SVMs"""
+
+
+    def fit(self, X, y, class_weight={}, sample_weight=[], n_fold=5, cv=None,
+            n_jobs=1, verbose=0, **params):
+        """
+        Fit the model, choosing optimal parameters by cross-validation.
+
+        Parameters
+        ----------
+        X : array-like, shape = [n_samples, n_features]
+            Training vector, where n_samples in the number of samples and
+            n_features is the number of features.
+
+        y : array-like, shape = [n_samples]
+            Target vector relative to X
+
+        class_weight : {dict, 'auto'}, optional
+            Set the parameter C of class i to class_weight[i]*C for
+            SVC. If not given, all classes are supposed to have
+            weight one. The 'auto' mode uses the values of y to
+            automatically adjust weights inversely proportional to
+            class frequencies.
+
+        sample_weight : array-like, shape = [n_samples], optional
+            Weights applied to individual samples (1. for unweighted).
+
+        n_fold : int, optional
+           Number of k-folds to use for cross-validation, only used if
+           cv=None.
+
+        n_jobs : int, optional
+           Number of jobs to run in parallel.
+        """
+        self._set_params(**params)
+        from scikits.learn import grid_search
+        from ..externals.joblib import Parallel, delayed
+
+        X = np.asanyarray(X, dtype=np.float64, order='C')
+        y = np.asanyarray(y, dtype=np.float64, order='C')
+        sample_weight = np.asanyarray(
+            sample_weight, dtype=np.float64, order='C')
+
+        self.shape_fit_ = X.shape
+        self.class_weight, self.class_weight_label = \
+                     _get_class_weight(class_weight, y)
+        solver_type = _libsvm_impl.index(self.impl)
+
+        # build parameters on which to iterate we also restore
+        # parameters to valid ones in case we have to call BaseLibSVM
+        cv_params = {}
+        if not isinstance(self.kernel, str):
+            cv_params.update({'kernel' : self.kernel})
+            self.kernel = self.kernel[0]
+        for param in (
+            'C', 'degree', 'gamma', 'coef0', 'cache_size', 'tol',
+            'nu', 'epsilon', 'shrinking', 'probability'):
+            attr = getattr(self, param, [])
+            if hasattr(attr, '__len__') and len(attr) > 1:
+                # all these parameters are scalars
+                cv_params.update({param : attr})
+                attr = attr[0]
+
+        if sample_weight.ndim > 1:
+            cv_params.update({'sample_weight' : sample_weight})
+
+        if cv is not None:
+            raise NotImplementedError('Only kfold implemented for now')
+
+        iter_grid = grid_search.IterGrid(cv_params)
+        score = Parallel(n_jobs=n_jobs, verbose=verbose)(
+            delayed(_libsvm_cross_validation_score)(
+                X, y, n_fold, solver_type, self._get_params(), params)
+            for params in iter_grid)
+
+        # get parameter for best score
+        best_params = list(iter_grid)[np.argmax(score)]
+        self._set_params(**best_params)
+
+        # train the model
+        self.support_, self.support_vectors_, self.n_support_, \
+        self.dual_coef_, self.intercept_, self.label_, self.probA_, \
+        self.probB_ = libsvm.fit(X, y, solver_type, **self._get_params())
+        return self
+
+
+def _libsvm_cross_validation_score(
+    X, y, n_fold, solver_type, clf_params, cv_params):
+    """Inner loop for cross validation"""
+    clf_params.update(cv_params)
+
+    target = libsvm.cross_validation(
+        X, y, n_fold, **clf_params)
+
+    if solver_type in [0, 1]:
+        return np.mean(target == y)
+    else:
+        from ..metrics import r2_score
+        return r2_score(target, y)
+
+
+
 libsvm.set_verbosity_wrap(0)
