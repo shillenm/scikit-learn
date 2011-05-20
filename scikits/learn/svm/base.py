@@ -308,7 +308,8 @@ class BaseLibLinear(BaseEstimator):
         }
 
     def __init__(self, penalty='l2', loss='l2', dual=True, tol=1e-4, C=1.0,
-                 multi_class=False, fit_intercept=True, intercept_scaling=1):
+                 multi_class=False, fit_intercept=True, intercept_scaling=1,
+                 class_weight={}):
         self.penalty = penalty
         self.loss = loss
         self.dual = dual
@@ -317,6 +318,7 @@ class BaseLibLinear(BaseEstimator):
         self.fit_intercept = fit_intercept
         self.intercept_scaling = intercept_scaling
         self.multi_class = multi_class
+        self.class_weight = {}
 
         # Check that the arguments given are valid:
         self._get_solver_type()
@@ -335,7 +337,7 @@ class BaseLibLinear(BaseEstimator):
                              + solver_type)
         return self._solver_type_dict[solver_type]
 
-    def fit(self, X, y, class_weight={}, **params):
+    def fit(self, X, y, **params):
         """
         Fit the model according to the given training data and
         parameters.
@@ -360,8 +362,8 @@ class BaseLibLinear(BaseEstimator):
         """
         self._set_params(**params)
 
-        self.class_weight, self.class_weight_label = \
-                     _get_class_weight(class_weight, y)
+        self._class_weight, self.class_weight_label = \
+                     _get_class_weight(self.class_weight, y)
 
         X = np.asanyarray(X, dtype=np.float64, order='C')
         y = np.asanyarray(y, dtype=np.int32, order='C')
@@ -369,7 +371,7 @@ class BaseLibLinear(BaseEstimator):
         self.raw_coef_, self.label_ = liblinear.train_wrap(X, y,
                        self._get_solver_type(), self.tol,
                        self._get_bias(), self.C,
-                       self.class_weight_label, self.class_weight)
+                       self.class_weight_label, self._class_weight)
 
         return self
 
@@ -394,7 +396,7 @@ class BaseLibLinear(BaseEstimator):
                                       self._get_solver_type(),
                                       self.tol, self.C,
                                       self.class_weight_label,
-                                      self.class_weight, self.label_,
+                                      self._class_weight, self.label_,
                                       self._get_bias())
 
     def decision_function(self, X):
@@ -417,7 +419,7 @@ class BaseLibLinear(BaseEstimator):
 
         dec_func = liblinear.decision_function_wrap(
             X, self.raw_coef_, self._get_solver_type(), self.tol,
-            self.C, self.class_weight_label, self.class_weight,
+            self.C, self.class_weight_label, self._class_weight,
             self.label_, self._get_bias())
 
         if len(self.label_) <= 2:
