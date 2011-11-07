@@ -175,6 +175,114 @@ class ElasticNet(LinearModel):
         return self
 
 
+class ElasticNetClassifier(ElasticNet):
+
+    def fit(self, X, y, Xy=None, coef_init=None):
+        """Fit Elastic Net model with coordinate descent
+
+        Parameters
+        -----------
+        X: ndarray, (n_samples, n_features)
+            Data
+        y: ndarray, (n_samples)
+            Target
+        Xy : array-like, optional
+            Xy = np.dot(X.T, y) that can be precomputed. It is useful
+            only when the Gram matrix is precomputed.
+        coef_init: ndarray of shape n_features
+            The initial coeffients to warm-start the optimization
+
+        Notes
+        -----
+
+        Coordinate descent is an algorithm that considers each column of
+        data at a time hence it will automatically convert the X input
+        as a fortran contiguous numpy array if necessary.
+
+        To avoid memory re-allocation it is advised to allocate the
+        initial data in memory directly using that format.
+        """
+        from sklearn.preprocessing import LabelBinarizer
+        X = as_float_array(X, self.copy_X)
+        self.label_binarizer = LabelBinarizer()
+        Y = self.label_binarizer.fit_transform(y)
+
+        n_samples, n_features = X.shape
+
+        if coef_init is None:
+            self.coef_ = np.zeros((n_features, Y.shape[1]), dtype=np.float64)
+        else:
+            self.coef_ = coef_init
+
+        alpha = self.alpha * self.rho * n_samples
+        beta = self.alpha * (1.0 - self.rho) * n_samples
+
+        X = np.asfortranarray(X)  # make data contiguous in memory
+
+        X_init = X
+        X, Y, X_mean, y_mean, X_std = self._center_data(X, Y,
+                                                        self.fit_intercept,
+                                                        self.normalize,
+                                                        copy=False)        
+        
+        # precompute if n_samples > n_features
+        precompute = self.precompute
+        if hasattr(self.precompute, '__array__'):
+            Gram = precompute
+        elif precompute == True or \
+               (precompute == 'auto' and n_samples > n_features):
+            Gram = np.dot(X.T, X)
+        else:
+            Gram = None
+
+        self.dual_gap_ = []
+        self.eps_ = []
+        if Gram is None:
+            for i, y1 in enumerate(Y.T):
+                res = cd_fast.enet_coordinate_descent(
+                 self.coef_[:, i], alpha, beta, X, y1, self.max_iter, self.tol)
+                self.coef_[:, i] = res[0]
+                self.dual_gap_.append(res[1])
+                self.eps_.append(res[2])
+                
+                if self.dual_gap_[i] > self.eps_[i]:
+                    warnings.warn('Objective did not converge, you might want'
+                                  ' to increase the number of iterations')
+        else:
+            if Xy is None:
+                Xy = np.dot(X.T, Y)
+            for i, y1 in enumerate(Y.T):
+                print y1
+                print Xy
+                res = cd_fast.enet_coordinate_descent_gram(
+                    self.coef_[:, i], alpha, beta, Gram, Xy[:, i], y1, self.max_iter, self.tol)
+                self.coef_[:, i] = res[0]
+                self.dual_gap_.append(res[1])
+                self.eps_.append(res[2])
+
+                if self.dual_gap_[i] > self.eps_[i]:
+                    warnings.warn('Objective did not converge, you might want'
+                                  ' to increase the number of iterations')
+
+        # return self for chaining fit and predict calls
+        return self
+
+    
+    def predict(self, X):
+        """
+        Predict target values according to the fitted model.
+
+        Parameters
+        ----------
+        X : array-like, shape = [n_samples, n_features]
+
+        Returns
+        -------
+        C : array, shape = [n_samples]
+        """
+        Y = ElasticNet.predict(self, X)
+        return self.label_binarizer.inverse_transform(Y)
+
 ###############################################################################
 # Lasso model
 
