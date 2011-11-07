@@ -20,15 +20,7 @@ class SparseBaseLibSVM(BaseLibSVM):
                                                coef0, tol, C, nu, epsilon,
                                                shrinking, probability, cache_size)
 
-        # container for when we call fit
-        self._support_data = np.empty(0, dtype=np.float64, order='C')
-        self._support_indices = np.empty(0, dtype=np.int32, order='C')
-        self._support_indptr = np.empty(0, dtype=np.int32, order='C')
-
         # strictly speaking, dual_coef is not sparse (see Notes above)
-        self._dual_coef_data = np.empty(0, dtype=np.float64, order='C')
-        self._dual_coef_indices = np.empty(0, dtype=np.int32,   order='C')
-        self._dual_coef_indptr = np.empty(0, dtype=np.int32,   order='C')
         self.intercept_ = np.empty(0, dtype=np.float64, order='C')
 
         # only used in classification
@@ -101,35 +93,28 @@ class SparseBaseLibSVM(BaseLibSVM):
             # if custom gamma is not provided ...
             self.gamma = 1.0 / X.shape[1]
 
-        self.label_, self.probA_, self.probB_ = libsvm.libsvm_sparse_train(
+        self.support_vectors_, dual_coef_data, self.label_, self.probA_, self.probB_ = \
+            libsvm.libsvm_sparse_train(
                  X.shape[1], X.data, X.indices, X.indptr, y,
                  solver_type, kernel_type, self.degree, self.gamma,
-                 self.coef0, self.tol, self.C, self._support_data,
-                 self._support_indices, self._support_indptr,
-                 self._dual_coef_data, self.intercept_,
+                 self.coef0, self.tol, self.C,
+                 self.intercept_,
                  self.class_weight_label, self.class_weight, sample_weight,
                  self.n_support_, self.nu, self.cache_size,  self.epsilon,
                  int(self.shrinking), int(self.probability))
 
         n_class = len(self.label_) - 1
-        n_SV = self._support_indptr.size - 1
+        n_SV = self.support_vectors_.shape[0]
+        import pdb; pdb.set_trace()
 
         dual_coef_indices = np.tile(np.arange(n_SV), n_class)
         dual_coef_indptr = np.arange(0, dual_coef_indices.size + 1,
                                      dual_coef_indices.size / n_class)
 
-        # this will fail if n_SV is zero. This is a limitation
-        # in scipy.sparse, which does not permit empty matrices
-        self.support_vectors_ = scipy.sparse.csr_matrix((self._support_data,
-                                           self._support_indices,
-                                           self._support_indptr),
-                                           (n_SV, X.shape[1]))
 
-        self.dual_coef_ = scipy.sparse.csr_matrix((self._dual_coef_data,
-                                             dual_coef_indices,
-                                             dual_coef_indptr),
-                                            (n_class, n_SV)
-                                            )
+        self.dual_coef_ = scipy.sparse.csr_matrix(
+            (dual_coef_data,dual_coef_indices, dual_coef_indptr),
+            (n_class, n_SV))
         return self
 
     def predict(self, T):
