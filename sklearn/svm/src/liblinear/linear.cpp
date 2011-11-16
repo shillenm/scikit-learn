@@ -1847,7 +1847,7 @@ static void train_one(const problem *prob, const parameter *param, double *w, do
 //
 // Interface functions
 //
-model* train(const problem *prob, const parameter *param)
+model* train(const problem *prob, const parameter *param, double * coefs)
 {
 	int i,j;
 	int l = prob->l;
@@ -1909,7 +1909,10 @@ model* train(const problem *prob, const parameter *param)
 	// multi-class svm by Crammer and Singer
 	if(param->solver_type == MCSVM_CS)
 	{
-		model_->w=Malloc(double, n*nr_class);
+		if (coefs == NULL)
+				model_->w=Malloc(double, n*nr_class);
+		else
+			model_->w = coefs;
 		for(i=0;i<nr_class;i++)
 			for(j=start[i];j<start[i]+count[i];j++)
 				sub_prob.y[j] = i;
@@ -1920,8 +1923,10 @@ model* train(const problem *prob, const parameter *param)
 	{
 		if(nr_class == 2)
 		{
-			model_->w=Malloc(double, w_size);
-
+			if (coefs == NULL)
+				model_->w=Malloc(double, w_size);
+			else
+				model_->w = coefs;
 			int e0 = start[0]+count[0];
 			k=0;
 			for(; k<e0; k++)
@@ -1933,7 +1938,11 @@ model* train(const problem *prob, const parameter *param)
 		}
 		else
 		{
-			model_->w=Malloc(double, w_size*nr_class);
+			if (coefs == NULL)
+				model_->w=Malloc(double, w_size*nr_class);
+			else
+				model_->w = coefs;
+
 			double *w=Malloc(double, w_size);
 			for(i=0;i<nr_class;i++)
 			{
