@@ -10,7 +10,7 @@ validation and performance evaluation.
 
 from itertools import combinations
 from math import ceil, floor, factorial
-import operator
+import sys, operator
 
 import numpy as np
 import scipy.sparse as sp
@@ -239,21 +239,25 @@ class KFold(object):
         assert k <= n, ValueError('Cannot have number of folds k=%d, '
                                   'greater than the number '
                                   'of samples: %d.' % (k, n))
-        self.n = n
-        self.k = k
+        if abs(n - int(n)) >= sys.float_info.epsilon:
+            raise ValueError("n must be an integer")
+        self.n = int(n)
+        if abs(k - int(k)) >= sys.float_info.epsilon:
+            raise ValueError("k must be an integer")
+        self.k = int(k)
         self.indices = indices
 
     def __iter__(self):
         n = self.n
         k = self.k
-        j = ceil(n / k)
+        items_per_fold = n // k
 
         for i in xrange(k):
             test_index = np.zeros(n, dtype=np.bool)
             if i < k - 1:
-                test_index[i * j:(i + 1) * j] = True
+                test_index[i * items_per_fold:(i + 1) * items_per_fold] = True
             else:
-                test_index[i * j:] = True
+                test_index[i * items_per_fold:] = True
             train_index = np.logical_not(test_index)
             if self.indices:
                 ind = np.arange(n)
