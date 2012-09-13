@@ -36,6 +36,14 @@ def isotonic_regression(y, w=None, x_min=None, x_max=None):
     Returns
     -------
     x: list of floating-point values
+
+    Notes
+    -----
+    This function implements the Pool Adjacent Violators algorithm as
+    described in "Active set algorithms for isotonic regression; a 
+    unifying framework" by Michael J. Best and Nilotpal Chakravarti.
+    
+    The complexity of the algorithm is O(n)
     """
     if w is None:
         w = np.ones(len(y), dtype=y.dtype)
